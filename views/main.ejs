@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <% include /part/header %>
+    <script language="javascript" type="text/javascript" src="/javascripts/contract_call/slotGame.js"></script>
+    <script language="javascript" type="text/javascript" src="/javascripts/slot.js"></script>
+    <link rel='stylesheet' href='/stylesheets/main.css' />
+    <script>
+      $(function(){
+        alertShow("★ Warning ★","Metamask와의 연동을 위해 PC의 Chrome브라우저만 지원하고있습니다. 이외 접근은 비정상적일 수 있습니다.");
+      })
+
+      var coinCount = setInterval(function(){
+        web3.eth.getAccounts((err, address)=>{
+         // getPending(address.toString(),"recodeResult(address,uint256[3])","slotGame").then(pendingCount => {
+          getPendingGame(address.toString()).then(pendingCount => {
+            console.log(pendingCount)
+            if(pendingCount != Number(0)){
+              console.log("- Game Pending : " + pendingCount);
+              $("#start_spinning").attr("class","disabled btn btn-lg btn-outline-warning");
+            }else{
+              $("#start_spinning").attr("class","go btn btn-lg btn-outline-warning");
+            }
+            getCoin().then(result => {
+              $("#getCoin").text(Number(result) - Number(pendingCount));
+            })
+          })
+        })
+      },1000);
+      
+    </script>
+  </head>
+  <body>
+      <div class="main_div">
+        <h1>Welcome to <span>BYC</span> Slot Game !!!</h1>
+        <h3 id="userAddress"></h3>
+        <!-- <h3 id="TokenBalance"></h3>
+        <h3 id="ETHBalance"></h3> -->
+      </div>
+      <% include /slot %>
+      <div id="playGround">
+          <div id="vending_machine">
+                <div id="helper"></div>
+                <div id="count">
+                      <span id="getCoin"></span>
+                </div>
+                <div id="addCoin">
+                      <input type="button" onclick="addCoin()" title="Click to add BYC"/>
+                </div>
+          </div>
+          <div id="txHash"></div>
+      </div>
+  </body>
+</html>
+

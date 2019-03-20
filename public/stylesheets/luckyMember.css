@@ -1,0 +1,23 @@
+body{
+    background-color:white;
+}
+h1{
+    text-align: center;
+    margin-top:20px;
+}
+
+div{
+    text-align: center
+}
+.table{
+    text-align: left;
+    width: 100%;
+    display: inline;
+}
+
+@media (min-width: 992px) {
+    .table{
+        text-align: left;
+        width: 80%;
+    }
+  }

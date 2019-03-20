@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <% include /part/header%>
+    <link rel='stylesheet' href='/stylesheets/luckyMember.css' />
+    <script type="text/javascript">
+        $(function(){
+            <%for(var i = 0; i < events.length; i++){%>
+                var html = '<tr class="table-success">'
+                html += '<th scope="row"><%=events[i].returnValues[0]%></th>'
+                html += '<td><%=events[i].timestamp%></td></tr>'
+                if($(".table > tbody > tr").length == 0){
+                    $(".table tbody").append(html);
+                }else{
+                    $(".table tbody tr").first().before(html);
+                }
+            <%}%>
+        })
+    </script>
+  </head>
+  <body>
+        <h1>Lucky Member</h1>
+        <div>
+            <table class="table table-hover">
+                <colgroup>
+                    <col width="60%"/>
+                    <col width="40%"/>
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th scope="col">Address</th>
+                        <th scope="col">Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table> 
+        </div>
+    </body>
+</html>

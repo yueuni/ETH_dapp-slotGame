@@ -1,0 +1,38 @@
+body{
+    background-color:white;
+}
+h1{
+    text-align: center;
+    margin-top:20px;
+}
+.content{
+    text-align: center;
+    padding:50px 35%;
+}
+
+#buyTx, #sellTx, #transferTx{
+    padding-top: 50px;
+}
+#buyTx a ,#sellTx a, #transferTx a{
+    color:#7979fb;
+    margin-bottom: 8px;
+    display: block;
+}
+.table th{
+    background-color: #333;
+    color:white
+}
+.transaction_history{
+    text-align: center
+}
+.transaction_history>div{
+    display: inline-block;
+    text-align: left;
+    width: 100%;
+}
+
+@media (min-width: 992px) {
+    .transaction_history>div{
+        width: 80%;
+    }
+  }

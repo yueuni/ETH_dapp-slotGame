@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <% include /part/header%>
+    <link rel='stylesheet' href='/stylesheets/exchange_Token.css' />
+    <script language="javascript" type="text/javascript" src="/javascripts/contract_call/token.js"></script>
+    <script type="text/javascript">
+        $(document).on("click",".category",function(){
+            $(".show").attr("class","tab-pane fade");
+            $(".active").attr("class","category nav-link");
+
+            var text = $(this).text();
+            text = text.replace(" ","_");
+            $("#"+text).attr("class","tab-pane fade show active");
+            $(this).attr("class","category nav-link active");
+        })
+        
+        $(document).on("keyup","#toAddress",function(){
+            if(web3.isAddress($(this).val())){
+                $(this).attr("class","form-control is-valid");
+            }else{
+                $(this).attr("class","form-control is-invalid");
+            }
+        })
+        $(document).on("keyup","#sellAmount",function(){
+            var balance = $("#TokenBalance").text().replace(" BYC","");
+            var input = $(this).val()
+            if(Number(input) > Number(balance) || Number(input) == 0){
+                $(this).attr("class","form-control is-invalid");
+            }else{
+                $(this).attr("class","form-control is-valid");
+            }
+        })
+        $(document).on("keyup","#transferAmount",function(){
+            var balance = $("#TokenBalance").text().replace(" BYC","");
+            var input = $(this).val()
+            if(Number(input) > Number(balance) || Number(input) == 0){
+                $(this).attr("class","form-control is-invalid");
+            }else{
+                $(this).attr("class","form-control is-valid");
+            }
+        })
+        $(document).on("keyup","#buyAmount",function(){
+            var balance = $("#ETHBalance").text().replace(" ETH","");
+            var input = $(this).val()
+            if(Number(input) > Number(balance) || Number(input) == 0){
+                $(this).attr("class","form-control is-invalid");
+            }else{
+                $(this).attr("class","form-control is-valid");
+            }
+        })
+
+
+        $(function(){
+            web3.eth.getAccounts(function(err, address) {
+                $("#fromAddress").val(address.toString());
+                //만약 토큰이 없다면 Sell, Transfer disabled
+                balanceOf(address.toString()).then(result => {
+                    if(result == "0"){
+                        $("#tab_Transfer").attr("class","nav-link disabled");
+                        $("#tab_Sell").attr("class","nav-link disabled");
+                        $("#tab_Transfer").removeAttr("data-toggle");
+                        $("#tab_Sell").removeAttr("data-toggle");
+                    }
+                }).catch(err => {
+                    console.log(err);
+                })
+
+                var type = ["Buy","Sell"];
+    
+                type.forEach((_type) => {
+                    $.ajax({
+                        url : "/call/transactionEvents",
+                        type: "post",
+                        data: {
+                            "type":_type,
+                            "address":address.toString()
+                        },
+                        dataType : "json",
+                        success : (data) => {
+                            if(data.tx.length == 0){
+                                var html = "<tr><td colspan='4' align='center'>"+_type+"내역이 없습니다.</td></tr>";
+                                $("#"+_type+" .transaction_history tbody").append(html);
+                            }else{
+                                for(var i = 0; i < data.tx.length;i++){
+                                    var html = "<tr><td><a href=\"#\" onclick=\"javascript:window.open('https://ropsten.etherscan.io/tx/"+data.tx[i].hash+"')\">"+data.tx[i].hash+"</a></td>"
+                                        html += "<td>"+data.tx[i].blockNumber+"</td>"
+                                        html += "<td>"+data.tx[i].time+"</td>"
+                                        html += "<td>"+data.tx[i].value+"</td></tr>"
+                                    if($("#"+_type+" .transaction_history .tbody tr").length == 0){
+                                        $("#"+_type+" .transaction_history .tbody").append(html);
+                                    }else{
+                                        $("#"+_type+" .transaction_history .tbody tr").first().before(html);
+                                    }
+                                }
+                            }
+                        },
+                        error : (ajax_err) => {
+                            console.log(ajax_err);
+                            var html = "<tr><td colspan='4' align='center'>"+_type+"내역이 없습니다.</td></tr>";
+                            $("#"+_type+" .transaction_history tbody").append(html);
+                        }
+                    });
+                })
+            });
+
+        })
+    </script>
+  </head>
+  <body>
+        <h1>Token Exchange</h1>
+        <ul class="nav nav-tabs">
+            <li class="nav-item">
+                <a class="category nav-link active" data-toggle="tab" href="#">Buy</a>
+            </li>
+            <li class="nav-item">
+                <a class="category nav-link" data-toggle="tab" id="tab_Sell" href="#">Sell</a>
+            </li>
+            <li class="nav-item">
+                <a class="category nav-link" data-toggle="tab" id="tab_Transfer" href="#">Transfer</a>
+            </li>
+        </ul>
+        <div id="myTabContent" class="tab-content" style="background-color: white">
+            <div class="tab-pane fade show active" id="Buy">
+                <div class="content">
+                    <label class="control-label">1 ETH : 1 BYC</label>
+                    <div class="form-group">
+                      <div class="input-group mb-3">
+                        <input type="number" class="form-control" id="buyAmount">
+                        <div class="input-group-append">
+                        <span class="input-group-text">ETH</span>
+                        </div>
+                      </div>
+                    </div>
+                    <input type="button" class="btn btn-secondary" value="Buy" onclick="buyToken()"/>
+                    <div id="buyTx"></div>
+                </div>
+                <% include /transaction_history%>
+            </div>
+            <div class="tab-pane fade" id="Sell">
+                <div class="content">
+                    <label class="control-label">1 BYC : 1 ETH</label>
+                    <div class="form-group">
+                        <div class="input-group mb-3">
+                            <input type="number" class="form-control" id="sellAmount">
+                            <div class="input-group-append">
+                                <span class="input-group-text">BTC</span>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="button" class="btn btn-secondary" value="Sell" onclick="sellToken()"/>
+                    <div id="sellTx"></div>
+                </div>
+                <% include /transaction_history%>
+            </div>
+            <div class="tab-pane fade" id="Transfer">
+                <div class="content">
+                    <label class="control-label">● Transfer Token ●</label>
+                    <div class="form-group">
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">From</span>
+                            </div>
+                            <input type="text" class="form-control" disabled="disabled" id="fromAddress">
+                        </div>
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">To</span>
+                            </div>
+                            <input type="text" class="form-control" id="toAddress">
+                        </div>
+                        <div class="input-group mb-3">
+                            <input type="number" class="form-control" id="transferAmount">
+                            <div class="input-group-append">
+                                <span class="input-group-text">BYC</span>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="button" class="btn btn-secondary" value="Transfer" onclick="transferToken()"/>
+                    <div id="transferTx"></div>
+                </div>
+            </div>
+        </div>
+  </body>
+</html>
+      
